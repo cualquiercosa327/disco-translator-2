@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine;
 using PixelCrushers.DialogueSystem;
 using Newtonsoft.Json;
+using DT2 = DiscoTranslator2.Datatypes;
 
 namespace DiscoTranslator2
 {
@@ -22,11 +23,11 @@ namespace DiscoTranslator2
             Extracted = true;
 
             //find English dialogue
-            DialogueList data = new DialogueList();
+            DT2.TranslationDatabase data = new DT2.TranslationDatabase();
             foreach (var convo in databases[0].conversations)
             {
                 //create conversation structure
-                Conversation conversation = new Conversation();
+                DT2.Conversation conversation = new DT2.Conversation();
                 conversation.title = convo.Title;
 
                 //obtain dialogue entry list
@@ -37,7 +38,7 @@ namespace DiscoTranslator2
                         continue;
 
                     //construct entry structure
-                    DialogueEntry dialogueEntry = new DialogueEntry();
+                    DT2.DialogueEntry dialogueEntry = new DT2.DialogueEntry();
                     dialogueEntry.id = Field.LookupValue(entry.fields, "Articy Id");
                     dialogueEntry.text = entry.DialogueText;
                     dialogueEntry.actor = databases[0].GetActor(entry.ActorID).Name;
@@ -54,24 +55,5 @@ namespace DiscoTranslator2
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
-    }
-
-    [Serializable]
-    class DialogueList
-    {
-        public List<Conversation> conversations = new List<Conversation>();
-    }
-    [Serializable]
-    class Conversation
-    {
-        public string title;
-        public List<DialogueEntry> entries = new List<DialogueEntry>();
-    }
-    [Serializable]
-    class DialogueEntry
-    {
-        public string id;
-        public string text;
-        public string actor;
     }
 }
