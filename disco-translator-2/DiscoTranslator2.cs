@@ -33,7 +33,8 @@ namespace DiscoTranslator2
             if (Term == null) return true;
             if (overrideLanguage != null && overrideLanguage == "English") return true;
 
-            return false;
+            //look up translation in dictionary, override GetTranslation output if present
+            return !TranslationRepository.Resolve(Term, out __result);
         }
     }
 }
