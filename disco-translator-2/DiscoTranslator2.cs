@@ -22,18 +22,18 @@ namespace DiscoTranslator2
             harmony.PatchAll();
         }
     }
-}
 
-[HarmonyPatch(typeof(I2.Loc.LocalizationManager), "GetTranslation")]
-class Patch
-{
-    //patch over the GetTranslation method of I2 Localization
-    public static bool Prefix(string Term, string overrideLanguage, ref string __result)
+    [HarmonyPatch(typeof(I2.Loc.LocalizationManager), "GetTranslation")]
+    class TranslationPatch
     {
-        //abort translation if there is no term or the override language is english
-        if (Term == null) return true;
-        if (overrideLanguage != null && overrideLanguage == "English") return true;
+        //patch over the GetTranslation method of I2 Localization
+        public static bool Prefix(string Term, string overrideLanguage, ref string __result)
+        {
+            //abort translation if there is no term or the override language is english
+            if (Term == null) return true;
+            if (overrideLanguage != null && overrideLanguage == "English") return true;
 
-        return false;
+            return false;
+        }
     }
 }
