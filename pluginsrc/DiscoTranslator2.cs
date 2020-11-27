@@ -48,8 +48,11 @@ namespace DiscoTranslator2
             if (Term == null) return true;
             if (overrideLanguage != null && overrideLanguage == "English") return true;
 
-            //look up translation in dictionary, override GetTranslation output if present
-            return !TranslationRepository.Resolve(Term, out __result);
+            //look up translation in dictionary, default to English if there is none
+            if (!TranslationRepository.Resolve(Term, out __result))
+                __result = I2.Loc.LocalizationManager.GetTranslation(Term, true, 0, true, false, null, "English");
+
+            return false;
         }
     }
 }
