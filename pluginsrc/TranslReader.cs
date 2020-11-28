@@ -48,7 +48,7 @@ namespace DiscoTranslator2
                 //handle comments
                 if (line.StartsWith("#")) continue;
                 if (line.StartsWith(@"\#")) line = line.Substring(1);
-                if (line.Contains("#")) line = line.Substring(0, line.IndexOf('#') + 1);
+                if (line.Contains("#")) line = line.Substring(0, line.IndexOf('#'));
                 line = line.TrimEnd();
 
                 //handle continuation
@@ -58,7 +58,7 @@ namespace DiscoTranslator2
                     if (entryId != null) AddEntry(ref output, entryId, entryText, path);
 
                     //separate line into id and text
-                    int separator = line.IndexOf(": ");
+                    int separator = line.IndexOf(":");
                     if (separator == -1)
                     {
                         DiscoTranslator2.PluginLogger.LogWarning("Warning: malformed transl file");
@@ -71,7 +71,8 @@ namespace DiscoTranslator2
 
                     //update parser state
                     entryId = line.Substring(0, separator);
-                    entryText = line.Substring(separator + 2);
+                    entryText = line.Substring(separator + 1);
+                    if (entryText.StartsWith(" ")) entryText = entryText.Substring(1); //colon + space
                 }
                 else
                 {
