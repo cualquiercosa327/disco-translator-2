@@ -30,7 +30,7 @@ namespace DiscoTranslator2
             ExtractRemaining(langAssets, ref transDatabase);
 
             //write obtained translation database to file
-            string json = JsonConvert.SerializeObject(transDatabase, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(transDatabase);
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
 
