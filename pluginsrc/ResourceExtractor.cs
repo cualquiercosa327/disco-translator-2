@@ -23,7 +23,6 @@ namespace DiscoTranslator2
             {"Archetypes", "ui"},
             {"Area Names", "areas"},
             {"Buttons", "ui"},
-            {"CHARACTER", "ui"},
             {"CHARSHEET", "ui"},
             {"Difficulties", "ui"},
             {"EFFECT", "ui"},
