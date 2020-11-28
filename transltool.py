@@ -28,6 +28,17 @@ def dumpDatabase(database_path, output_path):
         # dump to file
         dumpConversation(conversation, os.path.join(output_path, filename), append)
         
+    # dump misc
+    for misc_entry in data["miscellaneous"]:
+        # get filename and output path
+        filename = misc_entry["type"] + ".transl"
+        filepath = os.path.join(output_path, filename)
+        
+        # write to file
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, "a", encoding="utf8") as f:
+            f.write("{}: # {}\n".format(misc_entry["id"], misc_entry["text"].replace("\n", "\\\n")))
+        
 def dumpConversation(conversation, path, append):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "a" if append else "w", encoding="utf8") as f:

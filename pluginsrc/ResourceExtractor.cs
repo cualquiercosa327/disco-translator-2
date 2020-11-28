@@ -120,14 +120,53 @@ namespace DiscoTranslator2
                 }
             }
 
+            //misc entry type dictionary
+            Dictionary<string, string> typeDictionary = new Dictionary<string, string>
+            {
+                {"ANNOTATION", "ui"},
+                {"Abilities", "ui"},
+                {"Actors", "actors"},
+                {"Archetypes", "ui"},
+                {"Area Names", "areas"},
+                {"Buttons", "ui"},
+                {"CHARACTER", "ui"},
+                {"CHARSHEET", "ui"},
+                {"Difficulties", "ui"},
+                {"EFFECT", "ui"},
+                {"F1_SCREEN", "ui"},
+                {"INVENTORY", "ui"},
+                {"Items", "items"},
+                {"Messages", "messages"},
+                {"Newspapers", "newspapers"},
+                {"SETTINGS", "settings"},
+                {"Skills", "skills"},
+                {"TOOLTIP", "toltips"},
+                {"Thoughts", "thoughts"},
+                {"Tips", "tips"}
+            };
+
             //extract remaining terms
             foreach (var term in englishSource.mTerms)
             {
-                //skip entries covered by conversations
+                //skip entries covered by conversations and empty entries
                 if (term.Term.StartsWith("Conversation/")) continue;
+                if (string.IsNullOrWhiteSpace(term.Languages[englishIndex])) continue;
 
-                //update translation database
-                output.miscellaneous.Add(term.Term, term.Languages[englishIndex]);
+                //create entry
+                DT2.MiscEntry miscEntry = new DT2.MiscEntry();
+                miscEntry.id = term.Term;
+                miscEntry.text = term.Languages[englishIndex];
+
+                //detect special types
+                foreach (KeyValuePair<string, string> kvp in typeDictionary)
+                    if (miscEntry.id.StartsWith(kvp.Key))
+                    {
+                        miscEntry.type = kvp.Value;
+                        break;
+                    }
+
+                //add entry to database
+                output.miscellaneous.Add(miscEntry);
             }
         }
 
