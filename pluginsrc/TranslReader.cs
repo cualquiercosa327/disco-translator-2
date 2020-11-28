@@ -48,7 +48,7 @@ namespace DiscoTranslator2
                 //handle comments
                 if (line.StartsWith("#")) continue;
                 if (line.StartsWith(@"\#")) line = line.Substring(1);
-                if (line.Contains("#")) line = line.Substring(0, line.IndexOf('#'));
+                if (line.Contains("#")) line = line.Substring(0, line.IndexOf('#') + 1);
                 line = line.TrimEnd();
 
                 //handle continuation

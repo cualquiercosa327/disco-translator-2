@@ -38,7 +38,7 @@ def dumpDatabase(database_path, output_path):
         entries = data["miscellaneous"][category]
         with open(filepath, "a", encoding="utf8") as f:
             for key in entries:
-                f.write("{}: # {}\n".format(key, entries[key].replace("\n", "\\\n")))
+                f.write("{}: # {}\n".format(key, entries[key].replace("\n", "\\\n#")))
         
 def dumpConversation(conversation, path, append):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -46,7 +46,7 @@ def dumpConversation(conversation, path, append):
         # dump metadata
         f.write("# CONVERSATION METADATA\n")
         for key in conversation["metadata"]:
-            f.write("{}: # {}\n".format(key, conversation["metadata"][key].replace("\n", "\\\n")))
+            f.write("{}: # {}\n".format(key, conversation["metadata"][key].replace("\n", "\\\n#")))
             
         # skip entries if there are none
         if len(conversation["entries"]) == 0:
@@ -55,7 +55,7 @@ def dumpConversation(conversation, path, append):
         # dump conversation entries
         f.write("\n# CONVERSATION ENTRIES\n")
         for entry in conversation["entries"]:
-            f.write("{}: # {} {}\n".format(entry["id"], entry["actor"].upper(), entry["text"].replace("\n", "\\\n")))
+            f.write("{}: # {} {}\n".format(entry["id"], entry["actor"].upper(), entry["text"].replace("\n", "\\\n#")))
 
 def concatFiles():
     pass
