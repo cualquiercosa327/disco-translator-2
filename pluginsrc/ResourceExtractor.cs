@@ -48,6 +48,8 @@ namespace DiscoTranslator2
                     conversationEntry.type = "journal";
                 else if (Field.LookupValue(conversation.fields, "orbSoundVolume") != null)
                     conversationEntry.type = "orb";
+                else if (conversation.Title.ToLower().Contains("barks"))
+                    conversationEntry.type = "barks";
 
                 //obtain conversation metadata
                 foreach (var field in conversation.fields)
@@ -90,8 +92,9 @@ namespace DiscoTranslator2
                     }
                 }
 
-                //add conversation to list
-                output.conversations.Add(conversationEntry);
+                //add conversation to list, skip empty dialogues
+                if (conversationEntry.type != "dialogue" || conversationEntry.entries.Count != 0)
+                    output.conversations.Add(conversationEntry);
             }
         }
         static void ExtractRemaining(LanguageSourceAsset[] langSource, ref DT2.TranslationDatabase output)

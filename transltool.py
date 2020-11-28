@@ -11,15 +11,13 @@ def dumpDatabase(database_path, output_path):
         
     # delete old dump directory
     shutil.rmtree(output_path, ignore_errors=True)
-        
+    
+    # dump conversations
     for conversation in data["conversations"]:
         # generate human-readable filename
         filename = ''.join(a for a in conversation["title"].title() if a.isalnum())
         filename = filename[0].lower() + filename[1:] + ".transl"
-        
-        # filter out special types
-        if conversation["type"] != "dialogue":
-            filename = conversation["type"] + "/" + filename
+        filename = conversation["type"] + "/" + filename
             
         # dump dialogue-less orbs into one file
         append = False
