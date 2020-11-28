@@ -16,14 +16,16 @@ namespace DiscoTranslator2
         public static ManualLogSource PluginLogger;
         public static ConfigFile PluginConfig;
 
+        static FileSystemWatcher fileWatcher;
+
         public DiscoTranslator2()
         {
             //bind configuration
             string pluginDir = Path.Combine(Paths.PluginPath, "DiscoTranslator2");
             Config.Bind("Translation", "Database path", pluginDir,
                 "Where the database file is generated for other translation tools to use");
-            Config.Bind("Translation", "Translation path", pluginDir,
-                "Where the translation files (.transl) are located");
+            string transPath = Config.Bind("Translation", "Translation path", pluginDir,
+                "Where the translation files (.transl) are located").Value;
             Directory.CreateDirectory(pluginDir);
 
             //instantiate Harmony and patch over localization methods
@@ -32,6 +34,14 @@ namespace DiscoTranslator2
 
             PluginLogger = Logger;
             PluginConfig = Config;
+
+            //watch for file changes
+            fileWatcher = new FileSystemWatcher();
+            fileWatcher.Path = transPath;
+            fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            fileWatcher.Filter = "*.transl";
+            fileWatcher.Changed += OnTranslationChanged;
+            fileWatcher.EnableRaisingEvents = true;
         }
 
         public void Awake()
@@ -39,12 +49,18 @@ namespace DiscoTranslator2
             //load translations from translation directory
             TranslationRepository.LoadTranslations();
         }
-
         public void Update()
         {
             //extract resources as soon as they become available
             if (!ResourceExtractor.Extracted)
                 ResourceExtractor.Extract();
+        }
+
+        void OnTranslationChanged(object sender, FileSystemEventArgs e)
+        {
+            //reload translations
+            Logger.LogMessage("Detected change in " + Path.GetFileName(e.FullPath));
+            TranslationRepository.LoadTranslations();
         }
     }
 
