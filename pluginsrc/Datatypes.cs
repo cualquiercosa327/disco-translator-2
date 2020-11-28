@@ -8,7 +8,7 @@ namespace DiscoTranslator2.Datatypes
     class TranslationDatabase
     {
         public List<Conversation> conversations = new List<Conversation>();
-        public List<MiscEntry> miscellaneous = new List<MiscEntry>();
+        public Dictionary<string, Dictionary<string, string>> miscellaneous = new Dictionary<string, Dictionary<string, string>>();
     }
     [Serializable]
     class Conversation
@@ -24,12 +24,5 @@ namespace DiscoTranslator2.Datatypes
         public string id;
         public string text;
         public string actor;
-    }
-    [Serializable]
-    class MiscEntry
-    {
-        public string id;
-        public string text;
-        public string type = "misc";
     }
 }

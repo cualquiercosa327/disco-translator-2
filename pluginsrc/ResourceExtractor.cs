@@ -145,6 +145,12 @@ namespace DiscoTranslator2
                 {"Tips", "tips"}
             };
 
+            //initialize type-specific dictionary
+            foreach (KeyValuePair<string, string> kvp in typeDictionary)
+                if (!output.miscellaneous.ContainsKey(kvp.Value))
+                    output.miscellaneous.Add(kvp.Value, new Dictionary<string, string>());
+            output.miscellaneous.Add("misc", new Dictionary<string, string>());
+
             //extract remaining terms
             foreach (var term in englishSource.mTerms)
             {
@@ -152,21 +158,17 @@ namespace DiscoTranslator2
                 if (term.Term.StartsWith("Conversation/")) continue;
                 if (string.IsNullOrWhiteSpace(term.Languages[englishIndex])) continue;
 
-                //create entry
-                DT2.MiscEntry miscEntry = new DT2.MiscEntry();
-                miscEntry.id = term.Term;
-                miscEntry.text = term.Languages[englishIndex];
-
                 //detect special types
+                string entryType = "misc";
                 foreach (KeyValuePair<string, string> kvp in typeDictionary)
-                    if (miscEntry.id.StartsWith(kvp.Key))
+                    if (term.Term.StartsWith(kvp.Key))
                     {
-                        miscEntry.type = kvp.Value;
+                        entryType = kvp.Value;
                         break;
                     }
 
                 //add entry to database
-                output.miscellaneous.Add(miscEntry);
+                output.miscellaneous[entryType].Add(term.Term, term.Languages[englishIndex]);
             }
         }
 
