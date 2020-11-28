@@ -25,17 +25,17 @@ namespace DiscoTranslator2
             Extracted = true;
 
             //extract resources
-            DT2.TranslationDatabase transDatabase = ExtractConversations(dialDbs[0]);
+            DT2.TranslationDatabase transDatabase = new DT2.TranslationDatabase();
+            ExtractConversations(dialDbs[0], ref transDatabase);
+            ExtractRemaining(langAssets, ref transDatabase);
 
             //write obtained translation database to file
             string json = JsonConvert.SerializeObject(transDatabase, Formatting.Indented);
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
 
-        static DT2.TranslationDatabase ExtractConversations(DialogueDatabase database)
-        {
-            DT2.TranslationDatabase output = new DT2.TranslationDatabase();
-            
+        static void ExtractConversations(DialogueDatabase database, ref DT2.TranslationDatabase output)
+        {            
             //extract English conversations
             foreach (var conversation in database.conversations)
             {
@@ -87,8 +87,39 @@ namespace DiscoTranslator2
                 //add conversation to list
                 output.conversations.Add(conversationEntry);
             }
+        }
+        static void ExtractRemaining(LanguageSourceAsset[] langSource, ref DT2.TranslationDatabase output)
+        {
+            //find a language source with English strings
+            LanguageSourceData englishSource = null;
+            int englishIndex = -1;
 
-            return output;
+            //iterate over sources
+            foreach (var source in langSource)
+            {
+                //only search miscellaneous sources
+                if (!source.name.Contains("General"))
+                    continue;
+
+                //skip if English unavailable
+                int index = source.mSource.GetLanguageIndex("English");
+                if (index != -1)
+                {
+                    englishSource = source.mSource;
+                    englishIndex = index;
+                    break;
+                }
+            }
+
+            //extract remaining terms
+            foreach (var term in englishSource.mTerms)
+            {
+                //skip entries covered by conversations
+                if (term.Term.StartsWith("Conversation/")) continue;
+
+                //update translation database
+                output.miscellaneous.Add(term.Term, term.Languages[englishIndex]);
+            }
         }
 
         //easily readable entity ids
