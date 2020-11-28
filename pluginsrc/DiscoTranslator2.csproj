@@ -31,4 +31,8 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy bin\Debug\netstandard2.0\DiscoTranslator2.dll &quot;E:\Disco Elysium\Disco Elysium\BepInEx\plugins\DiscoTranslator2.dll&quot;" />
+  </Target>
+
 </Project>

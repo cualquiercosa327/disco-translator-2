@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DiscoTranslator2": {
+      "commandName": "Executable",
+      "executablePath": "E:\\Disco Elysium\\Disco Elysium\\disco.exe"
+    }
+  }
+}
