@@ -34,7 +34,7 @@ namespace DiscoTranslator2
             {"Newspapers", "newspapers"},
             {"SETTINGS", "settings"},
             {"Skills", "skills"},
-            {"TOOLTIP", "toltips"},
+            {"TOOLTIP", "tooltips"},
             {"Thoughts", "thoughts"},
             {"Tips", "tips"}
         };
