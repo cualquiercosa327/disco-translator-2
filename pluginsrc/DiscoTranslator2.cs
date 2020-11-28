@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 
 namespace DiscoTranslator2
@@ -12,29 +13,38 @@ namespace DiscoTranslator2
     [BepInProcess("disco.exe")]
     class DiscoTranslator2 : BaseUnityPlugin
     {
-        readonly ConfigEntry<string> databasePath;
-        readonly ConfigEntry<string> translPath;
+        public static ManualLogSource PluginLogger;
+        public static ConfigFile PluginConfig;
 
         public DiscoTranslator2()
         {
             //bind configuration
             string pluginDir = Path.Combine(Paths.PluginPath, "DiscoTranslator2");
-            databasePath = Config.Bind("Translation", "Database path", pluginDir,
+            Config.Bind("Translation", "Database path", pluginDir,
                 "Where the database file is generated for other translation tools to use");
-            translPath = Config.Bind("Translation", "Translation path", pluginDir,
+            Config.Bind("Translation", "Translation path", pluginDir,
                 "Where the translation files (.transl) are located");
             Directory.CreateDirectory(pluginDir);
 
             //instantiate Harmony and patch over localization methods
             Harmony harmony = new Harmony("pl.mssnt.DiscoTranslator2");
             harmony.PatchAll();
+
+            PluginLogger = Logger;
+            PluginConfig = Config;
+        }
+
+        public void Awake()
+        {
+            //load translations from translation directory
+            TranslationRepository.LoadTranslations();
         }
 
         public void Update()
         {
             //extract resources as soon as they become available
             if (!ResourceExtractor.Extracted)
-                ResourceExtractor.Extract(databasePath.Value);
+                ResourceExtractor.Extract();
         }
     }
 

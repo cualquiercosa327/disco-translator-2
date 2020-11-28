@@ -14,7 +14,7 @@ namespace DiscoTranslator2
     {
         public static bool Extracted = false;
 
-        public static void Extract(string path)
+        public static void Extract()
         {
             //obtain resource collections
             DialogueDatabase[] dialDbs = Resources.FindObjectsOfTypeAll<DialogueDatabase>();
@@ -31,6 +31,7 @@ namespace DiscoTranslator2
 
             //write obtained translation database to file
             string json = JsonConvert.SerializeObject(transDatabase);
+            string path = (string)DiscoTranslator2.PluginConfig["Translation", "Database path"].BoxedValue;
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
 

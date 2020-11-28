@@ -21,5 +21,10 @@ namespace DiscoTranslator2
             output = dictionary[resourceId];
             return true;
         }
+        public static void LoadTranslations()
+        {
+            string path = (string)DiscoTranslator2.PluginConfig["Translation", "Translation path"].BoxedValue;
+            dictionary = TranslReader.ReadAllFiles(path);
+        }
     }
 }
