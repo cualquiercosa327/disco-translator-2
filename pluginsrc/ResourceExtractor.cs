@@ -43,6 +43,12 @@ namespace DiscoTranslator2
                 DT2.Conversation conversationEntry = new DT2.Conversation();
                 conversationEntry.title = conversation.Title;
 
+                //detect special conversation types
+                if (Field.LookupValue(conversation.fields, "subtask_title_01") != null)
+                    conversationEntry.type = "journal";
+                else if (Field.LookupValue(conversation.fields, "orbSoundVolume") != null)
+                    conversationEntry.type = "orb";
+
                 //obtain conversation metadata
                 foreach (var field in conversation.fields)
                 {

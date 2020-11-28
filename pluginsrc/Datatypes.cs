@@ -14,6 +14,7 @@ namespace DiscoTranslator2.Datatypes
     class Conversation
     {
         public string title;
+        public string type = "dialogue";
         public Dictionary<string, string> metadata = new Dictionary<string, string>();
         public List<DialogueEntry> entries = new List<DialogueEntry>();
     }
