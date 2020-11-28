@@ -14,6 +14,42 @@ namespace DiscoTranslator2
     {
         public static bool Extracted = false;
 
+        //misc entry type dictionary
+        static readonly Dictionary<string, string> typeDictionary = new Dictionary<string, string>
+        {
+            {"ANNOTATION", "ui"},
+            {"Abilities", "ui"},
+            {"Actors", "actors"},
+            {"Archetypes", "ui"},
+            {"Area Names", "areas"},
+            {"Buttons", "ui"},
+            {"CHARACTER", "ui"},
+            {"CHARSHEET", "ui"},
+            {"Difficulties", "ui"},
+            {"EFFECT", "ui"},
+            {"F1_SCREEN", "ui"},
+            {"INVENTORY", "ui"},
+            {"Items", "items"},
+            {"Messages", "messages"},
+            {"Newspapers", "newspapers"},
+            {"SETTINGS", "settings"},
+            {"Skills", "skills"},
+            {"TOOLTIP", "toltips"},
+            {"Thoughts", "thoughts"},
+            {"Tips", "tips"}
+        };
+        //id decoding dictionary
+        //misc entry type dictionary
+        static readonly Dictionary<string, string> propDictionary = new Dictionary<string, string>
+        {
+            {"title", "@Title"},
+            {"desc", "@Description"},
+            {"sub", "@subtask_title_0"},
+            {"text", "Dialogue Text"},
+            {"alt", "Alternate"},
+            {"tip", "tooltip"}
+        };
+
         public static void Extract()
         {
             //obtain resource collections
@@ -121,31 +157,6 @@ namespace DiscoTranslator2
                 }
             }
 
-            //misc entry type dictionary
-            Dictionary<string, string> typeDictionary = new Dictionary<string, string>
-            {
-                {"ANNOTATION", "ui"},
-                {"Abilities", "ui"},
-                {"Actors", "actors"},
-                {"Archetypes", "ui"},
-                {"Area Names", "areas"},
-                {"Buttons", "ui"},
-                {"CHARACTER", "ui"},
-                {"CHARSHEET", "ui"},
-                {"Difficulties", "ui"},
-                {"EFFECT", "ui"},
-                {"F1_SCREEN", "ui"},
-                {"INVENTORY", "ui"},
-                {"Items", "items"},
-                {"Messages", "messages"},
-                {"Newspapers", "newspapers"},
-                {"SETTINGS", "settings"},
-                {"Skills", "skills"},
-                {"TOOLTIP", "toltips"},
-                {"Thoughts", "thoughts"},
-                {"Tips", "tips"}
-            };
-
             //initialize type-specific dictionary
             foreach (KeyValuePair<string, string> kvp in typeDictionary)
                 if (!output.miscellaneous.ContainsKey(kvp.Value))
@@ -187,6 +198,36 @@ namespace DiscoTranslator2
             if (field == "Description") return convoId + "/desc";
             if (field.StartsWith("subtask_title_")) return convoId + "/sub" + field[field.Length - 1];
             return null;
+        }
+        public static string DecodeId(string id)
+        {
+            //separate entry id from property name
+            int slash = id.IndexOf("/");
+            if (slash == -1) return null;
+
+            string property = id.Substring(slash + 1);
+            string articyId = id.Substring(0, slash);
+            if (property.Length != 4) return null;
+
+            //check against dictionary
+            string decodedProperty = null;
+            foreach (KeyValuePair<string, string> kvp in propDictionary)
+            {
+                if (property == kvp.Key) decodedProperty = kvp.Value;
+                else if (kvp.Key.StartsWith(property)) decodedProperty = kvp.Value + property[3];
+            }
+
+            //check failed
+            if (decodedProperty == null)
+                return null;
+
+            //tell conversations apart from dialogue entries
+            bool isConversation = decodedProperty[0] == '@';
+            if (isConversation) decodedProperty = decodedProperty.Substring(1);
+
+            //decode id
+            if (isConversation) return "Conversation/" + articyId;
+            else return decodedProperty + "/" + articyId;
         }
     }
 }

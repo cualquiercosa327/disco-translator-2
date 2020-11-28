@@ -96,6 +96,9 @@ namespace DiscoTranslator2
         }
         static void AddEntry(ref Dictionary<string, string> dictionary, string key, string value, string source)
         {
+            //decode human-friendly id
+            key = ResourceExtractor.DecodeId(key) ?? key;
+            
             //detect collisions
             if (dictionary.ContainsKey(key))
             {
