@@ -178,6 +178,10 @@ namespace DiscoTranslator2
                         break;
                     }
 
+                //skip redundant actor entries
+                if (entryType == "actors" && char.IsDigit(term.Term, 26))
+                    continue;
+
                 //add entry to database
                 output.miscellaneous[entryType].Add(term.Term, term.Languages[englishIndex]);
             }
