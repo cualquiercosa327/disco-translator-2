@@ -76,7 +76,14 @@ namespace DiscoTranslator2
 
             //look up translation in dictionary, default to English if there is none
             if (!TranslationRepository.Resolve(Term, out __result))
+            {
                 __result = I2.Loc.LocalizationManager.GetTranslation(Term, true, 0, true, false, null, "English");
+
+                //show missing translations, skip non-translations
+                if (string.IsNullOrWhiteSpace(__result)) return false;
+                if (__result == Term) return false;
+                DiscoTranslator2.PluginLogger.LogInfo("Unknown term " + Term + ": " + __result);
+            }
 
             return false;
         }
