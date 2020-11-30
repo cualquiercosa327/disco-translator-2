@@ -24,5 +24,6 @@ namespace DiscoTranslator2.Datatypes
         public string id;
         public string text;
         public string actor;
+        public List<string> leadsTo = new List<string>();
     }
 }

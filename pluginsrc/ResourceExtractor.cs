@@ -124,6 +124,15 @@ namespace DiscoTranslator2
                         dialogueEntry.text = field.value;
                         dialogueEntry.actor = database.GetActor(entry.ActorID).Name;
 
+                        //find where the entry leads to
+                        foreach (Link link in entry.outgoingLinks)
+                        {
+                            int destinationId = link.destinationDialogueID;
+                            DialogueEntry destination = conversation.dialogueEntries[destinationId];
+                            string destinationArticyId = Field.LookupValue(destination.fields, "Articy Id");
+                            dialogueEntry.leadsTo.Add(destinationArticyId);
+                        }
+
                         conversationEntry.entries.Add(dialogueEntry);
                     }
                 }
