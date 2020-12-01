@@ -39,6 +39,61 @@ def dumpDatabase(database_path, output_path):
         with open(filepath, "a", encoding="utf8") as f:
             for key in entries:
                 f.write("{}: # {}\n".format(key, entries[key].replace("\n", "\\\n#")))
+                
+def buildConversationTree(conversation):
+    # resolve entries dictionary
+    entries = conversation["entries"]
+    
+    # add additional fields to entries
+    for entry in entries.values():
+        entry["in_reply_to"] = []
+        entry["assigned_number"] = -1
+        entry["indent"] = 0
+        entry["visited"] = False
+        
+    # build reply graph
+    for entry_id, entry in entries.items():
+        for lead in entry["leadsTo"]:
+            # skip exit leads
+            if lead in entries:
+                entries[lead]["in_reply_to"] += [entry_id]
+                
+    # ordered entries to be printed
+    output = []
+    
+    # add roots and their branches
+    root_number = 0
+    for root in conversation["roots"]:
+        root_number = buildBranch(root, root_number, 0, entries, output)
+        
+    # resolve reply ids
+    for entry in output:
+        resolved_ids = [str(entries[x]["assigned_number"]) for x in entry["in_reply_to"]]
+        entry["in_reply_to_resolved"] = ", ".join(resolved_ids)
+        
+    return output
+    
+def buildBranch(root, root_number, indent, entries, output):
+    # add current node to output
+    entries[root]["assigned_number"] = root_number
+    entries[root]["indent"] = indent
+    entries[root]["visited"] = True
+    output += [entries[root]]
+    
+    # increment root number for future children and siblings
+    root_number += 1
+    
+    # add branches
+    for lead in entries[root]["leadsTo"]:
+        # skip previously visited nodes and exit nodes
+        if lead not in entries or entries[lead]["visited"]:
+            continue
+        
+        # add child, get next available number
+        root_number = buildBranch(lead, root_number, indent + 1, entries, output)
+    
+    # return next available number
+    return root_number
         
 def dumpConversation(conversation, path, append):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -54,8 +109,20 @@ def dumpConversation(conversation, path, append):
         
         # dump conversation entries
         f.write("\n# CONVERSATION ENTRIES\n")
-        for entry in conversation["entries"]:
-            f.write("{}: # {} {}\n".format(entry["id"], entry["actor"].upper(), entry["text"].replace("\n", "\\\n#")))
+        
+        # construct conversation tree and print ordered entries
+        ordered_entries = buildConversationTree(conversation)
+        for entry in ordered_entries:
+            number = entry["assigned_number"]
+            actor = entry["actor"].upper()
+            reply_info = ""
+            
+            if len(entry["in_reply_to"]) > 0:
+                reply_info = ", in reply to {}".format(entry["in_reply_to_resolved"])
+            
+            for fieldid, fieldtext in entry["fields"].items():
+                fieldtext = fieldtext.replace("\n", "\\\n#")
+                f.write("{}: # ({}{}) {}: {}\n".format(fieldid, number, reply_info, actor, fieldtext))
 
 def concatFiles():
     pass
