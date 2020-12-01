@@ -79,6 +79,10 @@ namespace DiscoTranslator2
                 DT2.Conversation conversationEntry = new DT2.Conversation();
                 conversationEntry.title = conversation.Title;
 
+                //get conversation root
+                DialogueEntry rootEntry = conversation.GetFirstDialogueEntry();
+                ResolveLeads(rootEntry, conversation, ref conversationEntry.roots);
+
                 //detect special conversation types
                 if (Field.LookupValue(conversation.fields, "subtask_title_01") != null)
                     conversationEntry.type = "journal";
@@ -106,35 +110,29 @@ namespace DiscoTranslator2
                 //obtain conversation dialogue entry list
                 foreach (var entry in conversation.dialogueEntries)
                 {
+                    //create dialogue entry
+                    DT2.DialogueEntry dialogueEntry = new DT2.DialogueEntry();
+                    string entryId = Field.LookupValue(entry.fields, "Articy Id");
+
                     //obtain translatable fields
                     foreach (var field in entry.fields)
                     {
-                        //skip empty entries
-                        if (String.IsNullOrWhiteSpace(field.value))
-                            continue;
+                        //skip emprt or irrelevant fields
+                        if (string.IsNullOrWhiteSpace(field.value)) continue;
+                        string fieldId = EncodeDialogueId(entryId, field.title);
+                        if (fieldId == null) continue;
 
-                        //skip irrelevant fields
-                        string articyId = Field.LookupValue(entry.fields, "Articy Id");
-                        string id = EncodeDialogueId(articyId, field.title);
-                        if (id == null) continue;
-
-                        //create dialogue entry and add it to parent conversation
-                        DT2.DialogueEntry dialogueEntry = new DT2.DialogueEntry();
-                        dialogueEntry.id = id;
-                        dialogueEntry.text = field.value;
-                        dialogueEntry.actor = database.GetActor(entry.ActorID).Name;
-
-                        //find where the entry leads to
-                        foreach (Link link in entry.outgoingLinks)
-                        {
-                            int destinationId = link.destinationDialogueID;
-                            DialogueEntry destination = conversation.dialogueEntries[destinationId];
-                            string destinationArticyId = Field.LookupValue(destination.fields, "Articy Id");
-                            dialogueEntry.leadsTo.Add(destinationArticyId);
-                        }
-
-                        conversationEntry.entries.Add(dialogueEntry);
+                        dialogueEntry.fields[fieldId] = field.value;
                     }
+
+                    //skip empty entries
+                    if (dialogueEntry.fields.Count == 0)
+                        continue;
+
+                    //find where the entry leads to
+                    dialogueEntry.actor = database.GetActor(entry.ActorID).Name;
+                    ResolveLeads(entry, conversation, ref dialogueEntry.leadsTo);
+                    conversationEntry.entries[entryId] = dialogueEntry;
                 }
 
                 //add conversation to list, skip empty dialogues
@@ -193,6 +191,36 @@ namespace DiscoTranslator2
 
                 //add entry to database
                 output.miscellaneous[entryType].Add(term.Term, term.Languages[englishIndex]);
+            }
+        }
+
+        static void ResolveLeads(DialogueEntry entry, Conversation conversation, ref List<string> leads)
+        {
+            string entryArticyId = Field.LookupValue(entry.fields, "Articy Id");
+
+            //analyze each link of an entry
+            foreach (Link link in entry.outgoingLinks)
+            {
+                //skip non-entry leads (conversation exits?)
+                int destinationId = link.destinationDialogueID;
+                if (destinationId >= conversation.dialogueEntries.Count) continue;
+
+                DialogueEntry destination = conversation.dialogueEntries[destinationId];
+                string destinationArticyId = Field.LookupValue(destination.fields, "Articy Id");
+
+                //skip self-referential leads
+                if (entryArticyId == destinationArticyId)
+                    continue;
+
+                //resolve group leads
+                if (destination.isGroup)
+                {
+                    ResolveLeads(destination, conversation, ref leads);
+                    continue;
+                }
+
+                //add entry lead
+                leads.Add(destinationArticyId);
             }
         }
 

@@ -15,15 +15,15 @@ namespace DiscoTranslator2.Datatypes
     {
         public string title;
         public string type = "dialogue";
+        public List<string> roots = new List<string>();
         public Dictionary<string, string> metadata = new Dictionary<string, string>();
-        public List<DialogueEntry> entries = new List<DialogueEntry>();
+        public Dictionary<string, DialogueEntry> entries = new Dictionary<string, DialogueEntry>();
     }
     [Serializable]
     class DialogueEntry
     {
-        public string id;
-        public string text;
         public string actor;
+        public Dictionary<string, string> fields = new Dictionary<string, string>();
         public List<string> leadsTo = new List<string>();
     }
 }
