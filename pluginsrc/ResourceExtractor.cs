@@ -266,7 +266,7 @@ namespace DiscoTranslator2
             foreach (KeyValuePair<string, string> kvp in propDictionary)
             {
                 if (property == kvp.Key) decodedProperty = kvp.Value;
-                else if (kvp.Key.StartsWith(property)) decodedProperty = kvp.Value + property[3];
+                else if (property.StartsWith(kvp.Key)) decodedProperty = kvp.Value + property[3];
             }
 
             //check failed
