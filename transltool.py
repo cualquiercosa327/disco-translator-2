@@ -68,8 +68,12 @@ def buildConversationTree(conversation):
         
     # resolve reply ids
     for entry in output:
-        resolved_ids = [str(entries[x]["assigned_number"]) for x in entry["in_reply_to"]]
-        entry["in_reply_to_resolved"] = ", ".join(resolved_ids)
+        resolved_ids = sorted([entries[id]["assigned_number"] for id in entry["in_reply_to"]])
+        resolved_ids = [id for id in resolved_ids if id < entry["assigned_number"]]
+        resolved_ids = [str(id) for id in resolved_ids]
+        resolved_ids = ", ".join(resolved_ids)
+        
+        entry["in_reply_to_resolved"] = resolved_ids or None
         
     return output
     
@@ -117,7 +121,7 @@ def dumpConversation(conversation, path, append):
             actor = entry["actor"].upper()
             reply_info = ""
             
-            if len(entry["in_reply_to"]) > 0:
+            if entry["in_reply_to_resolved"] is not None:
                 reply_info = ", in reply to {}".format(entry["in_reply_to_resolved"])
             
             for fieldid, fieldtext in entry["fields"].items():
