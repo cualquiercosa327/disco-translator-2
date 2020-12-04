@@ -40,6 +40,7 @@ namespace DiscoTranslator2
             fileWatcher.Path = transPath;
             fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
             fileWatcher.Filter = "*.transl";
+            fileWatcher.IncludeSubdirectories = true;
             fileWatcher.Changed += OnTranslationChanged;
             fileWatcher.EnableRaisingEvents = true;
         }
