@@ -78,23 +78,33 @@ def buildConversationTree(conversation):
     return output
     
 def buildBranch(root, root_number, indent, entries, output):
-    # add current node to output
-    entries[root]["assigned_number"] = root_number
-    entries[root]["indent"] = indent
-    entries[root]["visited"] = True
-    output += [entries[root]]
-    
-    # increment root number for future children and siblings
-    root_number += 1
-    
-    # add branches
+    # add current node to output if it's a top root
+    if indent == 0:
+        entries[root]["assigned_number"] = root_number
+        entries[root]["indent"] = indent
+        entries[root]["visited"] = True
+        output += [entries[root]]
+        indent += 1
+        root_number += 1
+        
+    # add children to output
+    added_children = []
     for lead in entries[root]["leadsTo"]:
         # skip previously visited nodes and exit nodes
         if lead not in entries or entries[lead]["visited"]:
             continue
         
-        # add child, get next available number
-        root_number = buildBranch(lead, root_number, indent + 1, entries, output)
+        # register child
+        entries[lead]["assigned_number"] = root_number
+        entries[lead]["indent"] = indent
+        entries[lead]["visited"] = True
+        output += [entries[lead]]
+        added_children += [lead]
+        root_number += 1
+    
+    # add grandchildren
+    for child in added_children:
+        root_number = buildBranch(child, root_number, indent + 1, entries, output)
     
     # return next available number
     return root_number
