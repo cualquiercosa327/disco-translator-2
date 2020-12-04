@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 
-def dumpDatabase(database_path, output_path):
+def dumpDatabase(database_path, output_path, indented):
     # open and parse database JSON
     with open(database_path, encoding="utf8") as f:
         data = json.load(f)
@@ -26,7 +26,7 @@ def dumpDatabase(database_path, output_path):
             append = True
         
         # dump to file
-        dumpConversation(conversation, os.path.join(output_path, filename), append)
+        dumpConversation(conversation, os.path.join(output_path, filename), append, indented)
         
     # dump misc
     for category in data["miscellaneous"]:
@@ -109,7 +109,7 @@ def buildBranch(root, root_number, indent, entries, output):
     # return next available number
     return root_number
         
-def dumpConversation(conversation, path, append):
+def dumpConversation(conversation, path, append, indented):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "a" if append else "w", encoding="utf8") as f:
         # dump metadata
@@ -124,20 +124,31 @@ def dumpConversation(conversation, path, append):
         # dump conversation entries
         f.write("\n# CONVERSATION ENTRIES\n")
         
-        # construct conversation tree and print ordered entries
+        # construct conversation tree
         ordered_entries = buildConversationTree(conversation)
+        
+        # print ordered entries
         for entry in ordered_entries:
+            indent = "\t" * entry["indent"]
             number = entry["assigned_number"]
             actor = entry["actor"].upper()
             reply_info = ""
             
+            # format reply info
+            reply_format = " (to {})" if indented else ", in reply to {}"
             if entry["in_reply_to_resolved"] is not None:
-                reply_info = ", in reply to {}".format(entry["in_reply_to_resolved"])
+                reply_info = reply_format.format(entry["in_reply_to_resolved"])
             
+            # format entry
             for fieldid, fieldtext in entry["fields"].items():
                 fieldtext = fieldtext.replace("\n", "\\\n#")
-                f.write("{}: # ({}{}) {}: {}\n".format(fieldid, number, reply_info, actor, fieldtext))
-
+                
+                if indented:
+                    f.write("{}: # ({})\t{}{}: {}{}\n".format(fieldid, number,
+                    indent, actor, fieldtext, reply_info))
+                else:
+                    f.write("{}: # ({}{}) {}: {}\n".format(fieldid, number,
+                    reply_info, actor, fieldtext))
 def concatFiles():
     pass
 
@@ -147,11 +158,13 @@ management utility for Disco Translator 2")
 
 actiongroup = arg_parser.add_mutually_exclusive_group(required=True)
 actiongroup.add_argument("--dump", type=str, metavar="PATH",
-    help="Split a JSON database into a .transl file hierarchy")
+    help="split a JSON database into a .transl file hierarchy")
 actiongroup.add_argument("--concat", type=str, metavar="PATH",
-    help="Concatenate a .transl file hierarchy into a single file")
-arg_parser.add_argument("--output", type=str, metavar="PATH", default=".",
-    help="Output path for the above options")
+    help="concatenate a .transl file hierarchy into a single file")
+arg_parser.add_argument("--indented", default=False, action='store_true',
+    help="use an indented format when dumping dialogues")
+arg_parser.add_argument("output", type=str, metavar="OUTPUT_PATH", default=".",
+    help="output path for the program")
 
 # show help if there are no arguments
 if len(sys.argv) < 2:
@@ -161,6 +174,6 @@ if len(sys.argv) < 2:
 # perform the requested action
 args = arg_parser.parse_args()
 if args.dump:
-    dumpDatabase(args.dump, args.output)
+    dumpDatabase(args.dump, args.output, args.indented)
 elif args.concat:
     concatFiles(args.concat, args.output)
