@@ -65,7 +65,7 @@ namespace DiscoTranslator2
             ExtractRemaining(langAssets, ref transDatabase);
 
             //write obtained translation database to file
-            string json = JsonConvert.SerializeObject(transDatabase, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(transDatabase);
             string path = (string)DiscoTranslator2.PluginConfig["Translation", "Database path"].BoxedValue;
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
@@ -196,25 +196,32 @@ namespace DiscoTranslator2
 
         static void ResolveLeads(DialogueEntry entry, Conversation conversation, ref List<string> leads)
         {
+            //don't follow final entries
+            if (entry.Sequence != null && entry.Sequence.Contains("FinishDialogue()"))
+                return;
+            
             //follow forced sequence
             while (entry.Sequence == "Continue()")
             {
-                if (entry.id == conversation.dialogueEntries.Count - 1) return;
-                entry = conversation.dialogueEntries[entry.id + 1];
+                if (entry.outgoingLinks.Count > 0)
+                {
+                    int contId = entry.outgoingLinks[0].destinationDialogueID;
+                    entry = conversation.dialogueEntries[contId];
+                }
+                else
+                    return;
             }
-
-            string entryArticyId = Field.LookupValue(entry.fields, "Articy Id");
 
             //analyze each link of an entry
             foreach (Link link in entry.outgoingLinks)
             {
+                //skip self-referential leads
+                if (link.destinationDialogueID == entry.id) continue;
+
                 //resolve lead entry
                 int destinationId = link.destinationDialogueID;
                 if (destinationId >= conversation.dialogueEntries.Count) continue;
                 DialogueEntry destination = conversation.dialogueEntries[destinationId];
-
-                //skip self-referential leads
-                if (destination.id == entry.id) continue;
 
                 //resolve group leads and other anomalies
                 if (Field.LookupValue(destination.fields, "Dialogue Text") == null)
