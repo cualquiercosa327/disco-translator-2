@@ -65,7 +65,7 @@ namespace DiscoTranslator2
             ExtractRemaining(langAssets, ref transDatabase);
 
             //write obtained translation database to file
-            string json = JsonConvert.SerializeObject(transDatabase);
+            string json = JsonConvert.SerializeObject(transDatabase, Formatting.Indented);
             string path = (string)DiscoTranslator2.PluginConfig["Translation", "Database path"].BoxedValue;
             File.WriteAllText(Path.Combine(path, "database.json"), json);
         }
@@ -196,30 +196,35 @@ namespace DiscoTranslator2
 
         static void ResolveLeads(DialogueEntry entry, Conversation conversation, ref List<string> leads)
         {
+            //follow forced sequence
+            while (entry.Sequence == "Continue()")
+            {
+                if (entry.id == conversation.dialogueEntries.Count - 1) return;
+                entry = conversation.dialogueEntries[entry.id + 1];
+            }
+
             string entryArticyId = Field.LookupValue(entry.fields, "Articy Id");
 
             //analyze each link of an entry
             foreach (Link link in entry.outgoingLinks)
             {
-                //skip non-entry leads (conversation exits?)
+                //resolve lead entry
                 int destinationId = link.destinationDialogueID;
                 if (destinationId >= conversation.dialogueEntries.Count) continue;
-
                 DialogueEntry destination = conversation.dialogueEntries[destinationId];
-                string destinationArticyId = Field.LookupValue(destination.fields, "Articy Id");
 
                 //skip self-referential leads
-                if (entryArticyId == destinationArticyId)
-                    continue;
+                if (destination.id == entry.id) continue;
 
-                //resolve group leads
-                if (destination.isGroup)
+                //resolve group leads and other anomalies
+                if (Field.LookupValue(destination.fields, "Dialogue Text") == null)
                 {
                     ResolveLeads(destination, conversation, ref leads);
                     continue;
                 }
 
                 //add entry lead
+                string destinationArticyId = Field.LookupValue(destination.fields, "Articy Id");
                 leads.Add(destinationArticyId);
             }
         }
